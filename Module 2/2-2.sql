@@ -1,0 +1,49 @@
+--problem 1
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+CREATE TABLE THALIA_EDWARDS (
+teID CHAR(2) PRIMARY KEY,
+teFIRSTNAME VARCHAR2(55),
+teSALARY NUMBER(8,2),
+teDOB DATE
+);
+DESC THALIA_EDWARDS;
+
+--problem 2
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+DESC THALIA_EDWARDS;
+SELECT TABLE_NAME FROM USER_TABLES;
+
+--problem 3
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+ALTER TABLE THALIA_EDWARDS ADD(teLAST_NAME VARCHAR2(25));
+DESC THALIA_EDWARDS;
+
+--problem 4
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+ALTER TABLE THALIA_EDWARDS MODIFY(teFIRSTNAME VARCHAR2(25));
+DESC THALIA_EDWARDS;
+
+--problem 5
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+ALTER TABLE THALIA_EDWARDS DROP COLUMN teSALARY;
+DESC THALIA_EDWARDS;
+
+--problem 6
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+RENAME THALIA_EDWARDS TO EMPLOYEE;
+
+--problem 7
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+DROP TABLE EMPLOYEE;
+DESC EMPLOYEE;
+
+--problem 8
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+FLASHBACK TABLE EMPLOYEE
+TO BEFORE DROP;
+DESC EMPLOYEE;
+
+--problem 9
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+DROP TABLE EMPLOYEE PURGE;
+SELECT object_name, original_name FROM recyclebin;
