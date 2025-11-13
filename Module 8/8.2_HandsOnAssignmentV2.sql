@@ -106,9 +106,18 @@ AND b.quantity < 3;
 /*problem 7
 List all active coffee products (product ID, name, and price) for all coffee items priced above the overall average of coffee items.
 */
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+SELECT idProduct, productname, price, active, type, idDepartment, stock
+    FROM bb_product
+    WHERE type = 'C'
+    AND active = 1
+    AND price > (SELECT AVG(price)
+                    FROM bb_product
+                    WHERE type = 'C');
 
 /*problem 8 
 Create a table named CONTACTS that includes the following columns:8*/
+
 
 /*problem 9 
 Add two rows of data to the table, using data values you create. Make sure the default
