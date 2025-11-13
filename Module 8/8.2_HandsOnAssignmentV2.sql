@@ -38,6 +38,7 @@ SELECT DISTINCT idProduct, p.productname
 Show the basket ID, product ID, product name, and description for all items ordered. 
 (Do it two ways—one with an ANSI join and one with a traditional join.)*/
 --ANSI join
+SELECT sysdate, 'Thalia Edwards' FROM dual;
 SELECT idBasket, idProduct, productname, description
     FROM bb_basket INNER JOIN bb_basketitem 
         USING (idBasket)
@@ -45,6 +46,7 @@ SELECT idBasket, idProduct, productname, description
                 USING (idProduct)
     WHERE orderplaced = 1;
 --traditional join
+SELECT sysdate, 'Thalia Edwards' FROM dual;
 SELECT b.idBasket, bi.idProduct, p.productname, p.description
 FROM bb_basket b, bb_basketitem bi, bb_product p
 WHERE b.idBasket = bi.idBasket
@@ -53,6 +55,7 @@ AND orderplaced = 1;
 /*problem 3
 Modify the queries in Step 2 to include the customer’s last name.*/
 --ANSI join
+SELECT sysdate, 'Thalia Edwards' FROM dual;
 SELECT lastname, idBasket, idProduct, productname, description
     FROM bb_basket INNER JOIN bb_basketitem 
         USING (idBasket)
@@ -62,6 +65,7 @@ SELECT lastname, idBasket, idProduct, productname, description
                         USING (idShopper)
     WHERE orderplaced = 1;
 --traditional join
+SELECT sysdate, 'Thalia Edwards' FROM dual;
 SELECT s.lastname, b.idBasket, bi.idProduct, p.productname, p.description
 FROM bb_basket b, bb_basketitem bi, bb_product p, bb_shopper s
 WHERE b.idBasket = bi.idBasket
@@ -72,6 +76,7 @@ AND orderplaced = 1;
 Display all orders (basket ID, shopper ID, and date ordered) placed in February 2012. 
 The date should be displayed in this format: February 12, 2012. 
 */
+SELECT sysdate, 'Thalia Edwards' FROM dual;
 SELECT idBasket, idShopper,TO_CHAR(dtordered, 'Month DD, YYYY') AS dateordered
    FROM bb_shopper
         INNER JOIN bb_basket
@@ -81,18 +86,21 @@ SELECT idBasket, idShopper,TO_CHAR(dtordered, 'Month DD, YYYY') AS dateordered
 /*problem 5
 Display the total quantity sold by product ID. */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
-SELECT idProduct, b.quantity
-   FROM bb_shopper s 
-    INNER JOIN bb_basket b
-        USING (idShopper)
-    INNER JOIN bb_basketitem bi
-        USING (idBasket)
-    INNER JOIN bb_product p
-        USING (idProduct)
-    WHERE orderplaced = 1;
-    
+SELECT bi.idProduct, b.quantity AS quantity_sold
+FROM bb_basket b, bb_basketitem bi, bb_product p, bb_shopper s
+WHERE b.idBasket = bi.idBasket
+AND bi.idProduct = p.idProduct
+AND b.idShopper = s.idShopper
+AND orderplaced = 1; 
 /*problem 6
 Modify the query in Step 5 to show only products that have sold less than a quantity of 3. */
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+SELECT bi.idProduct, b.quantity AS quantity_sold
+FROM bb_basket b, bb_basketitem bi, bb_product p, bb_shopper s
+WHERE b.idBasket = bi.idBasket
+AND bi.idProduct = p.idProduct
+AND b.idShopper = s.idShopper
+AND orderplaced = 1; 
 
 /*problem 7
 List all active coffee products (product ID, name, and price) for all coffee items priced above the overall average of coffee items.
