@@ -24,48 +24,73 @@ SELECT idProduct, p.productname, pc.categoryname, pd.optionname
 Produce an unduplicated list of all product IDs 
 for all products that have been sold. Sort the list.*/  
 SELECT sysdate, 'Thalia Edwards' FROM dual;
-SELECT DISTINCT idProduct, productname
-    FROM bb_product
-    ORDER BY idProduct;
+SELECT DISTINCT idProduct, p.productname
+    FROM bb_shopper s 
+    INNER JOIN bb_basket b
+        USING (idShopper)
+    INNER JOIN bb_basketitem bi
+        USING (idBasket)
+    INNER JOIN bb_product p
+        USING (idProduct)
+    WHERE orderplaced = 1;
 
 /*problem 2
 Show the basket ID, product ID, product name, and description for all items ordered. 
 (Do it two ways—one with an ANSI join and one with a traditional join.)*/
 --ANSI join
 SELECT idBasket, idProduct, productname, description
-FROM bb_basket INNER JOIN bb_basketitem 
-    USING (idBasket)
-        INNER JOIN bb_product
-            USING (idProduct);
+    FROM bb_basket INNER JOIN bb_basketitem 
+        USING (idBasket)
+            INNER JOIN bb_product
+                USING (idProduct)
+    WHERE orderplaced = 1;
 --traditional join
 SELECT b.idBasket, bi.idProduct, p.productname, p.description
 FROM bb_basket b, bb_basketitem bi, bb_product p
 WHERE b.idBasket = bi.idBasket
-AND bi.idProduct = p.idProduct;
+AND bi.idProduct = p.idProduct
+AND orderplaced = 1;
 /*problem 3
 Modify the queries in Step 2 to include the customer’s last name.*/
 --ANSI join
 SELECT lastname, idBasket, idProduct, productname, description
-FROM bb_basket INNER JOIN bb_basketitem 
-    USING (idBasket)
-        INNER JOIN bb_product
-            USING (idProduct)
-                INNER JOIN bb_shopper
-                    USING (idShopper);
+    FROM bb_basket INNER JOIN bb_basketitem 
+        USING (idBasket)
+            INNER JOIN bb_product
+                USING (idProduct)
+                    INNER JOIN bb_shopper
+                        USING (idShopper)
+    WHERE orderplaced = 1;
 --traditional join
 SELECT s.lastname, b.idBasket, bi.idProduct, p.productname, p.description
 FROM bb_basket b, bb_basketitem bi, bb_product p, bb_shopper s
 WHERE b.idBasket = bi.idBasket
 AND bi.idProduct = p.idProduct
-AND b.idShopper = s.idShopper;
+AND b.idShopper = s.idShopper
+AND orderplaced = 1;
 /*problem 4
-Display all orders (basket ID, shopper ID, and date ordered) placed in February 2012. The date should be displayed in this format: February 12, 2012. 
+Display all orders (basket ID, shopper ID, and date ordered) placed in February 2012. 
+The date should be displayed in this format: February 12, 2012. 
 */
-
+SELECT idBasket, idShopper,TO_CHAR(dtordered, 'Month DD, YYYY') AS dateordered
+   FROM bb_shopper
+        INNER JOIN bb_basket
+            USING (idShopper)
+   WHERE dtordered BETWEEN TO_DATE('February 1, 2012', 'Month DD, YYYY') AND TO_DATE('February 29, 2012', 'Month DD, YYYY');
 
 /*problem 5
 Display the total quantity sold by product ID. */
-
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+SELECT idProduct, b.quantity
+   FROM bb_shopper s 
+    INNER JOIN bb_basket b
+        USING (idShopper)
+    INNER JOIN bb_basketitem bi
+        USING (idBasket)
+    INNER JOIN bb_product p
+        USING (idProduct)
+    WHERE orderplaced = 1;
+    
 /*problem 6
 Modify the query in Step 5 to show only products that have sold less than a quantity of 3. */
 

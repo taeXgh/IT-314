@@ -54,8 +54,8 @@ SELECT s.lastname, b.idBasket, p.idProduct, productname, description
 --problem 4
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 SELECT idBasket, idShopper,TO_CHAR(dtordered, 'Month DD, YYYY') AS dateordered
-   FROM bb_shopper s
-   INNER JOIN bb_basket b
+   FROM bb_shopper
+   INNER JOIN bb_basket
       USING (idShopper)
    WHERE dtordered = TO_DATE('February 12, 2012', 'Month DD, YYYY');
 
