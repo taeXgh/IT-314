@@ -62,6 +62,7 @@ AND b.idShopper = s.idShopper;
 Display all orders (basket ID, shopper ID, and date ordered) placed in February 2012. The date should be displayed in this format: February 12, 2012. 
 */
 
+
 /*problem 5
 Display the total quantity sold by product ID. */
 
