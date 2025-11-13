@@ -121,6 +121,7 @@ CREATE TABLE CONTACTS (
     Con_id NUMBER(4) PRIMARY KEY,
     Company_name VARCHAR2(30) NOT NULL,
     Email VARCHAR2(30),
+    Last_date DATE DEFAULT SYSDATE,
     Con_cnt NUMBER(3) CHECK(Con_cnt > 0)
 );
 
@@ -129,8 +130,15 @@ Add two rows of data to the table, using data values you create. Make sure the d
 option on the LAST_DATE column is used in the second row added. Also, issue a
 command to save the data in the table permanently.
 */
-
-
+SAVEPOINT preInsertContacts;
+INSERT INTO CONTACTS (Con_id, Company_name, Email, Last_date, Con_cnt) VALUES (
+    1234, 'Google', 'employeename@gmail.com', '30-DEC-03', 1
+);
+INSERT INTO CONTACTS (Con_id, Company_name, Email, Con_cnt) VALUES (
+    5678, 'Microsoft', 'employeename@outlook.com', 2
+);
+COMMIT;
+select * from CONTACTS;
 /*problem 10 
 Issue a command to change the e-mail value for the first row added to the table. Show a
 query on the table to confirm that the change was completed. Then issue a command to
