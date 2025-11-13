@@ -100,7 +100,8 @@ FROM bb_basket b, bb_basketitem bi, bb_product p, bb_shopper s
 WHERE b.idBasket = bi.idBasket
 AND bi.idProduct = p.idProduct
 AND b.idShopper = s.idShopper
-AND orderplaced = 1; 
+AND orderplaced = 1
+AND b.quantity < 3;
 
 /*problem 7
 List all active coffee products (product ID, name, and price) for all coffee items priced above the overall average of coffee items.
