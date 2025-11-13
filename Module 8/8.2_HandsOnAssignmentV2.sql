@@ -116,14 +116,20 @@ SELECT idProduct, productname, price, active, type, idDepartment, stock
                     WHERE type = 'C');
 
 /*problem 8 
-Create a table named CONTACTS that includes the following columns:8*/
-
+Create a table named CONTACTS that includes the following columns*/
+CREATE TABLE CONTACTS (
+    Con_id NUMBER(4) PRIMARY KEY,
+    Company_name VARCHAR2(30) NOT NULL,
+    Email VARCHAR2(30),
+    Con_cnt NUMBER(3) CHECK(Con_cnt > 0)
+);
 
 /*problem 9 
 Add two rows of data to the table, using data values you create. Make sure the default
 option on the LAST_DATE column is used in the second row added. Also, issue a
 command to save the data in the table permanently.
 */
+
 
 /*problem 10 
 Issue a command to change the e-mail value for the first row added to the table. Show a
