@@ -130,6 +130,7 @@ Add two rows of data to the table, using data values you create. Make sure the d
 option on the LAST_DATE column is used in the second row added. Also, issue a
 command to save the data in the table permanently.
 */
+SELECT sysdate, 'Thalia Edwards' FROM dual;
 SAVEPOINT preInsertContacts;
 INSERT INTO CONTACTS (Con_id, Company_name, Email, Last_date, Con_cnt) VALUES (
     1234, 'Google', 'employeename@gmail.com', '30-DEC-03', 1
@@ -144,6 +145,13 @@ Issue a command to change the e-mail value for the first row added to the table.
 query on the table to confirm that the change was completed. Then issue a command to
 undo the change
 */
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+SAVEPOINT preUpdateEmail;
+UPDATE CONTACTS
+    SET Email = 'newemail@gmail.com'
+    WHERE Con_id = 1234;
+SELECT * FROM CONTACTS;
+ROLLBACK TO preUpdateEmail;
 
 /*
 Hands On Assignment Part 2
