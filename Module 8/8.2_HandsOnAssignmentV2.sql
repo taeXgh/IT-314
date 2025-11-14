@@ -92,6 +92,7 @@ WHERE b.idBasket = bi.idBasket
 AND bi.idProduct = p.idProduct
 AND b.idShopper = s.idShopper
 AND orderplaced = 1; 
+
 /*problem 6
 Modify the query in Step 5 to show only products that have sold less than a quantity of 3. */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
@@ -156,5 +157,33 @@ ROLLBACK TO preUpdateEmail;
 /*
 Hands On Assignment Part 2
 Assignment 1-5
+*/
+/*problem 1 
+List each donor who has made a pledge and indicated a single lump sum payment. Include
+first name, last name, pledge date, and pledge amount.
+*/
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+SELECT * FROM dd_donor;
+SELECT * FROM dd_pledge;
+SELECT * FROM dd_payment;
+SELECT * FROM dd_project;
+SELECT * FROM dd_status;
 
+/*problem 2
+List each donor who has made a pledge and indicated monthly payments over one year.
+Include first name, last name, pledge date, and pledge amount. Also, display the monthly
+payment amount. (Equal monthly payments are made for all pledges paid in monthly
+payments.)
+*/
+/*problem 3
+Display an unduplicated list of projects (ID and name) that have pledges committed. Don’t
+display all projects defined; list only those that have pledges assigned.
+*/
+/*problem 4
+Display the number of pledges made by each donor. Include the donor ID, first name, last
+name, and number of pledges.
+*/
+/*problem 5
+Display all pledges made before March 8, 2012. Include all column data from the
+DD_PLEDGE table.
 */
