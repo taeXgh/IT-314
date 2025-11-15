@@ -118,6 +118,7 @@ SELECT idProduct, productname, price, active, type, idDepartment, stock
 
 /*problem 8 
 Create a table named CONTACTS that includes the following columns*/
+SELECT sysdate, 'Thalia Edwards' FROM dual;
 CREATE TABLE CONTACTS (
     Con_id NUMBER(4) PRIMARY KEY,
     Company_name VARCHAR2(30) NOT NULL,
