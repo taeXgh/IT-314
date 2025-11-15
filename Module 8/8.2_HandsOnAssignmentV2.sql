@@ -218,4 +218,4 @@ DD_PLEDGE table.
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 SELECT *
 FROM dd_pledge
-WHERE pledgedate < ;
+WHERE pledgedate < TO_DATE('March 08, 2012', 'MONTH DD, YYYY');
