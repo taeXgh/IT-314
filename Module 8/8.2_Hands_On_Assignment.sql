@@ -25,6 +25,22 @@ Create a block using an IF statement to perform the actions described in Assignm
 a scalar variable for the total purchase amount, and initialize this variable to different values to
 test your block.*/
 SELECT sysdate, 'Thalia Edwards' from dual;
+DECLARE
+    lv_total_purchase_amount NUMBER(10,2);
+    lv_customer_rating VARCHAR2(10);
+BEGIN
+    lv_total_purchase_amount := 99;
+    IF lv_total_purchase_amount >= 200 THEN
+        lv_customer_rating := 'High';
+        DBMS_OUTPUT.PUT_LINE('Customer Rating: ' || lv_customer_rating);
+    ELSIF lv_total_purchase_amount <200 AND lv_total_purchase_amount >=100 THEN
+        lv_customer_rating :='Mid';
+        DBMS_OUTPUT.PUT_LINE('Customer Rating: ' || lv_customer_rating);
+    ELSE
+        lv_customer_rating := 'Low';
+        DBMS_OUTPUT.PUT_LINE('Customer Rating: ' || lv_customer_rating);
+    END IF;
+END;
 
 /*Assignment 2-4: Using CASE Statements
 Create a block using a CASE statement to perform the actions described in Assignment 2-2. Use
