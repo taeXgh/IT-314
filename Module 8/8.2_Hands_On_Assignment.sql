@@ -19,7 +19,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Test Number: ' || lv_test_num);
     DBMS_OUTPUT.PUT_LINE('Test Text: ' || lv_test_txt);
 END;
-
+/
 /*Assignment 2-3: Using IF Statements
 Create a block using an IF statement to perform the actions described in Assignment 2-2. Use
 a scalar variable for the total purchase amount, and initialize this variable to different values to
