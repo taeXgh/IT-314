@@ -58,3 +58,58 @@ BEGIN
   END IF; 
    DBMS_OUTPUT.PUT_LINE('Shopper '||lv_shop_num||' is rated '||lv_rating_txt);
 END;
+
+--Assignment 3-4
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+DECLARE
+    lv_total_num NUMBER(6,2);
+    lv_rating_txt VARCHAR2(4);
+    lv_shop_num bb_basket.idshopper%TYPE := 24;
+BEGIN
+    SELECT SUM(total)
+    INTO lv_total_num
+
+    FROM bb_basket
+    WHERE idShopper = 24
+    AND orderplaced = 1
+    GROUP BY idshopper;
+    CASE
+        WHEN lv_total_num >= 200 THEN
+            lv_rating_txt := 'High';
+        WHEN lv_total_num <200 AND lv_total_num >=100 THEN
+            lv_rating_txt :='Mid';
+        ELSE
+            lv_rating_txt := 'Low';
+    END CASE;
+    DBMS_OUTPUT.PUT_LINE('Shopper '||lv_shop_num||' is rated '||lv_rating_txt);
+END;
+
+/* Assignment 3-5
+Brewbean’s wants to include a feature in its application that calculates the total amount (quantity)
+of a specified item that can be purchased with a given amount of money. Create a block with a
+WHILE loop to increment the item’s cost until the dollar value is met. Test first with a total spending
+amount of $100 and product ID 4. Then test with an amount and a product of your choice. Use
+initialized variables to provide the total spending amount and product ID.*/
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+DECLARE
+    lv_purchaseable_qty NUMBER := 0;
+    lv_amount NUMBER;
+    lv_total_spending_amount NUMBER := 100;
+    lv_product_id bb_product.idproduct%TYPE := 4;
+    lv_product_price bb_product.price%TYPE;
+
+BEGIN
+    SELECT price
+    INTO lv_product_price
+    FROM bb_product
+    WHERE idproduct = 4;
+
+    WHILE lv_total_spending_amount >= lv_product_price LOOP
+        lv_purchaseable_qty := lv_purchaseable_qty + 1;
+        lv_total_spending_amount := lv_total_spending_amount - lv_product_price;
+        lv_amount := lv_purchaseable_qty * lv_product_price;
+    END LOOP;
+
+    DBMS_OUTPUT.PUT_LINE('qty: ' || lv_purchaseable_qty);
+    DBMS_OUTPUT.PUT_LINE('amt: ' || lv_amount);
+END;
