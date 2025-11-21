@@ -37,19 +37,24 @@ END;
 --Assignment 3-3
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 DECLARE
- lv_total_num NUMBER(6,2);
- lv_rating_txt VARCHAR2(4);
- lv_shop_num bb_basket.idshopper%TYPE := 22;
+    lv_total_num NUMBER(6,2);
+    lv_rating_txt VARCHAR2(4);
+    lv_shop_num bb_basket.idshopper%TYPE := 22;
 BEGIN
- SELECT SUM(total)
+    SELECT SUM(total)
+    INTO lv_total_num
 
-  FROM bb_basket
-  WHERE idShopper = 
+    FROM bb_basket
+    WHERE idShopper = 22
     AND orderplaced = 1
-  GROUP BY idshopper;
-  IF lv_total_num > 200 THEN
-
+    GROUP BY idshopper;
+    IF lv_total_num > 200 THEN
+        lv_rating_txt := 'High';
+    ELSIF lv_total_num <200 AND lv_total_num >=100 THEN
+        lv_rating_txt :='Mid';
+    ELSE
+        lv_rating_txt := 'Low';
 
   END IF; 
-   DBMS_OUTPUT.PUT_LINE('Shopper '||:g_shopper||' is rated '||lv_rating_txt);
+   DBMS_OUTPUT.PUT_LINE('Shopper '||lv_shop_num||' is rated '||lv_rating_txt);
 END;
