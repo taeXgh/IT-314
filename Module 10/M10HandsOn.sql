@@ -47,34 +47,26 @@ Redo Assignment 4-9, but use a different cursor form to perform the same task*/
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
 DECLARE
-    CURSOR cur_pledge(p_pledge NUMBER) IS
+    CURSOR cur_pledge IS
         SELECT IDPLEDGE, PLEDGEAMT, PAYMONTHS, PAYAMT, PAYDATE
         FROM dd_pledge INNER JOIN dd_payment
             USING (IDPLEDGE)
-        WHERE IDPLEDGE = p_pledge
+        WHERE IDDONOR = 308
         ORDER BY IDPLEDGE, PAYDATE;
-   TYPE type_pledge IS RECORD (
-     pledge dd_pledge.IDPLEDGE%TYPE,
-     amt dd_pledge.PLEDGEAMT%TYPE,
-     monthly dd_pledge.PAYMONTHS%TYPE,
-     amount dd_payment.PAYAMT%TYPE,
-     dtpaid dd_payment.PAYDATE%TYPE);
-   rec_pledge type_pledge;
    lv_first_flag dd_pledge.IDPLEDGE%TYPE := -1; 
 BEGIN
     DBMS_OUTPUT.PUT_LINE('PledgeID Amt Months PayDate PayAmt');
-    FOR rec_pledge IN cur_pledge(308) LOOP
-        IF rec_pledge.pledge != lv_first_flag THEN
-            DBMS_OUTPUT.PUT_LINE(rec_pledge.pledge || ' ' || rec_pledge.amt || ' ' ||
-                rec_pledge.monthly || ' ' || TO_CHAR(rec_pledge.dtpaid, 'MON-DD-YYYY') || ' ' ||
-                rec_pledge.amount || ' First payment');
-            lv_first_flag := rec_pledge.pledge;
+    FOR rec_pledge IN cur_pledge LOOP
+        IF rec_pledge.IDPLEDGE != lv_first_flag THEN
+            DBMS_OUTPUT.PUT_LINE(rec_pledge.IDPLEDGE || ' ' || rec_pledge.PLEDGEAMT || ' ' ||
+                rec_pledge.PAYMONTHS || ' ' || TO_CHAR(rec_pledge.PAYDATE, 'MON-DD-YYYY') || ' ' ||
+                rec_pledge.PAYAMT || ' First payment');
+            lv_first_flag := rec_pledge.IDPLEDGE;
         ELSE
-            DBMS_OUTPUT.PUT_LINE(rec_pledge.pledge || ' ' || rec_pledge.amt || ' ' ||
-                rec_pledge.monthly || ' ' || TO_CHAR(rec_pledge.dtpaid, 'MON-DD-YYYY') || ' ' ||
-                rec_pledge.amount);
+            DBMS_OUTPUT.PUT_LINE(rec_pledge.IDPLEDGE || ' ' || rec_pledge.PLEDGEAMT || ' ' ||
+                rec_pledge.PAYMONTHS || ' ' || TO_CHAR(rec_pledge.PAYDATE, 'MON-DD-YYYY') || ' ' ||
+                rec_pledge.PAYAMT);
         END IF;
    END LOOP;
-   CLOSE cur_pledge;
 END;
 /
