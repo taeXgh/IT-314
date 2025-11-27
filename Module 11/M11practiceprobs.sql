@@ -2,10 +2,9 @@
 Create a procedure named STATUS_SHIP_SP that allows an employee in the Shipping
 Department to update an order status to add shipping information. The BB_BASKETSTATUS
 table lists events for each order so that a shopper can see the current status, date, and
-comments as each stage of the order process is finished. The IDSTAGE column of the BB_BASKETSTATUS table identifies each stage; the value 3 in this column indicates that an
-order has been shipped. The procedure should allow adding a row with an IDSTAGE of 3, date shipped, tracking
-number, and shipper. The BB_STATUS_SEQ sequence is used to provide a value for the primary
-key column. 
+comments as each stage of the order process is finished. The IDSTAGE column of the BB_BASKETSTATUS table identifies each stage; 
+the value 3 in this column indicates that an order has been shipped. The procedure should allow adding a row with an IDSTAGE of 3, 
+date shipped, tracking number, and shipper. The BB_STATUS_SEQ sequence is used to provide a value for the primary key column. 
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
@@ -25,7 +24,6 @@ BEGIN
     (idstatus, idbasket, idstage, dtstage, notes, shipper, shippingnum)
     VALUES
     (bb_status_seq.NEXTVAL, p_basketid, p_stageid, p_datestage, p_notes, p_shipper, p_shipNum);
-    COMMIT;
 END STATUS_SHIP_SP;
 /
 --test the procedure
@@ -33,7 +31,7 @@ DECLARE
     lv_statusid bb_basketstatus.idstatus%TYPE;
     lv_basketid bb_basketstatus.idbasket%TYPE := 3;
     lv_stageid bb_basketstatus.idstage%TYPE := 3;
-    lv_datestage bb_basketstatus.dtstage%TYPE := TO_DATE('20-FEB-12', 'DD-MON-RR');
+    lv_datestage bb_basketstatus.dtstage%TYPE := TO_DATE('20-FEB-12', 'DD-MON-YY');
     lv_notes bb_basketstatus.notes%TYPE;
     lv_shipper bb_basketstatus.shipper%TYPE;
     lv_shipNum bb_basketstatus.shippingnum%TYPE := 'ZW2384YXK4957';
@@ -127,10 +125,52 @@ date 15-FEB-12. Assign free shipping for the month APR and the year 2012.
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
+select * from bb_promolist;
+desc bb_promolist;
+SELECT * FROM BB_BASKET;
+SELECT * FROM BB_SHOPPER;
+
 CREATE OR REPLACE
 PROCEDURE PROMO_SHIP_SP
-
-
+(p_datecutoff IN bb_basket.dtcreated%TYPE,
+ p_month IN bb_promolist.promomonth%TYPE,
+ p_year IN bb_promolist.promoyear%TYPE)
+IS
+BEGIN
+    DECLARE
+        CURSOR cur_promo IS
+            SELECT DISTINCT IDSHOPPER
+            FROM bb_basket
+            WHERE DTCREATED < p_datecutoff;
+    BEGIN
+        FOR rec_promo IN cur_promo LOOP
+            INSERT INTO bb_promolist (promomonth, promoyear, promoflag, used)
+            VALUES (p_month, p_year, 1, 'N');
+        END LOOP;
+    END;
+END PROMO_SHIP_SP;
+/
+--test the procedure
+DECLARE
+    lv_month bb_promolist.promomonth%TYPE := 'APR';
+    lv_year bb_promolist.promoyear%TYPE := 2012;
+    lv_datecutoff bb_basket.dtcreated%TYPE := TO_DATE('15-FEB-12', 'DD-MON-YY');
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('PledgeID Amt Months PayDate PayAmt');
+    FOR rec_pledge IN cur_pledge LOOP
+        IF rec_pledge.IDPLEDGE != lv_first_flag THEN
+            DBMS_OUTPUT.PUT_LINE(rec_pledge.IDPLEDGE || ' ' || rec_pledge.PLEDGEAMT || ' ' ||
+                rec_pledge.PAYMONTHS || ' ' || TO_CHAR(rec_pledge.PAYDATE, 'MON-DD-YYYY') || ' ' ||
+                rec_pledge.PAYAMT || ' First payment');
+            lv_first_flag := rec_pledge.IDPLEDGE;
+        ELSE
+            DBMS_OUTPUT.PUT_LINE(rec_pledge.IDPLEDGE || ' ' || rec_pledge.PLEDGEAMT || ' ' ||
+                rec_pledge.PAYMONTHS || ' ' || TO_CHAR(rec_pledge.PAYDATE, 'MON-DD-YYYY') || ' ' ||
+                rec_pledge.PAYAMT);
+        END IF;
+   END LOOP;
+END;
+/
 /* Assignment 5-8
 As a shopper selects products on the Brewbean’s site, a procedure is needed to add a newly
 selected item to the current shopper’s basket. Create a procedure named BASKET_ADD_SP that
