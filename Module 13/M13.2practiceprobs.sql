@@ -1,22 +1,40 @@
 --Hands On Assignment Part 1
---Assignment 3-1
+--Assignment 9-1
 SELECT sysdate, 'Thalia Edwards' FROM dual;
+
+--create trigger create a product request when stock level falls below reorder level
+CREATE OR REPLACE TRIGGER bb_reorder_trg
+   AFTER UPDATE OF stock ON bb_product
+   FOR EACH ROW 
 DECLARE
-  lv_ship_date bb_basketstatus.dtstage%TYPE;
-  lv_shipper_txt bb_basketstatus.shipper%TYPE;
-  lv_ship_num bb_basketstatus.shippingnum%TYPE;
-  lv_bask_num bb_basketstatus.idbasket%TYPE := 3;
-BEGIN
-  SELECT dtstage, shipper, shippingnum
-   INTO lv_ship_date, lv_shipper_txt, lv_ship_num
-   FROM bb_basketstatus
-   WHERE idbasket = lv_bask_num
-    AND idstage = 5;
-  DBMS_OUTPUT.PUT_LINE('Date Shipped: '||lv_ship_date);
-  DBMS_OUTPUT.PUT_LINE('Shipper: '||lv_shipper_txt);
-  DBMS_OUTPUT.PUT_LINE('Shipping #: '||lv_ship_num);
+  v_onorder_num NUMBER(4);
+ BEGIN
+  If :NEW.stock <= :NEW.reorder THEN
+   SELECT SUM(qty)
+    INTO v_onorder_num
+    FROM bb_product_request
+    WHERE idProduct = :NEW.idProduct
+     AND dtRecd IS NULL;
+   IF v_onorder_num IS NULL THEN v_onorder_num := 0; END IF;
+   IF v_onorder_num = 0 THEN
+     INSERT INTO bb_product_request (idRequest, idProduct, dtRequest, qty)
+       VALUES (bb_prodreq_seq.NEXTVAL, :NEW.idProduct, SYSDATE, :NEW.reorder);
+   END IF;
+  END IF;
 END;
 /
+--test the trigger
+SELECT stock, reorder
+FROM bb_product
+WHERE idproduct = 4;
+--------------------
+UPDATE bb_product
+SET stock = 25
+WHERE idproduct = 4;
+--------------------
+SELECT * FROM bb_product_request;
+ROLLBACK; --undo statements for reusing original data
+
 --Assignment 3-2
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 DECLARE
