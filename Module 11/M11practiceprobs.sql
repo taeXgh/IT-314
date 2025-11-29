@@ -178,6 +178,36 @@ Form code—4
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
+CREATE OR REPLACE
+PROCEDURE BASKET_ADD_SP
+(p_basketid IN bb_basketitem.idbasketitem%TYPE,
+ p_productid IN bb_basketitem.idproduct%TYPE,
+ p_price IN bb_basketitem.price%TYPE,
+ p_quantity IN bb_basketitem.quantity%TYPE,
+ p_sizecode IN bb_basketitem.option1%TYPE,
+ p_formcode IN bb_basketitem.option2%TYPE)
+ IS
+ BEGIN
+    INSERT INTO bb_basketitem
+    (idbasketitem, idbasket, idproduct, price, quantity, option1, option2)
+    VALUES
+    (bb_idbasketitem_seq.NEXTVAL, p_basketid, p_productid, p_price, p_quantity, p_sizecode, p_formcode);
+ END BASKET_ADD_SP;
+--test the procedure
+/
+DECLARE
+    lv_basketid bb_basketitem.idbasketitem%TYPE := 14;
+    lv_productid bb_basketitem.idproduct%TYPE := 8;
+    lv_price bb_basketitem.price%TYPE := 10.80;
+    lv_quantity bb_basketitem.quantity%TYPE := 1;
+    lv_sizecode bb_basketitem.option1%TYPE := 2;
+    lv_formcode bb_basketitem.option2%TYPE := 4;
+BEGIN
+    BASKET_ADD_SP(lv_basketid, lv_productid, lv_price, lv_quantity, lv_sizecode, lv_formcode);
+END;
+/
+SELECT * FROM bb_basketitem WHERE idbasket = 14;  --check the inserted data
+DELETE FROM bb_basketitem WHERE idbasket = 14 AND idproduct = 8;  --cleanup test data
 
 /* Assignment 5-9
 The home page of the Brewbean’s Web site has an option for members to log on with their IDs
@@ -191,3 +221,73 @@ p_check. Test the procedure using a valid logon first, with the username rat55 a
 kile. Then try it with an invalid logon by changing the username to rat.
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
+
+CREATE OR REPLACE
+PROCEDURE MEMBER_CK_SP
+(p_username IN VARCHAR2,
+ p_pass IN OUT VARCHAR2,
+ p_cookie OUT VARCHAR2,
+ p_check OUT VARCHAR2)
+ IS
+BEGIN
+    p_check := 'VALID';
+    SELECT firstname || ' ' || lastname, cookie
+    INTO p_pass, p_cookie
+    FROM bb_shopper
+    WHERE USERNAME = p_username AND PASSWORD = p_pass;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            p_check := 'INVALID';
+            p_pass := NULL;
+            p_cookie := NULL;
+END;
+/
+--test the procedure
+DECLARE
+    lv_username VARCHAR2(50) := 'rat55';
+    lv_pass VARCHAR2(50) := 'kile';
+    lv_cookie VARCHAR2(50);
+    lv_check VARCHAR2(10);
+BEGIN
+    MEMBER_CK_SP(lv_username, lv_pass, lv_cookie, lv_check);
+    DBMS_OUTPUT.PUT_LINE('Full name:');
+    DBMS_OUTPUT.PUT_LINE(lv_pass);
+    DBMS_OUTPUT.PUT_LINE('Cookie:');
+    DBMS_OUTPUT.PUT_LINE(lv_cookie);
+    DBMS_OUTPUT.PUT_LINE('Check:');
+    DBMS_OUTPUT.PUT_LINE(lv_check);
+END;
+/
+DECLARE
+    lv_username VARCHAR2(50) := 'rat';
+    lv_pass VARCHAR2(50) := 'kile';
+    lv_cookie VARCHAR2(50);
+    lv_check VARCHAR2(10);
+BEGIN
+    MEMBER_CK_SP(lv_username, lv_pass, lv_cookie, lv_check);
+    DBMS_OUTPUT.PUT_LINE('Full name:');
+    DBMS_OUTPUT.PUT_LINE(lv_pass);
+    DBMS_OUTPUT.PUT_LINE('Cookie:');
+    DBMS_OUTPUT.PUT_LINE(lv_cookie);
+    DBMS_OUTPUT.PUT_LINE('Check:');
+    DBMS_OUTPUT.PUT_LINE(lv_check);
+END;
+/
+
+CREATE OR REPLACE PROCEDURE PHONE_FMT_SP
+    (p_phone IN OUT VARCHAR2)
+    IS
+BEGIN
+    p_phone := '(' || SUBSTR(p_phone, 1, 3) || ')' || 
+                      SUBSTR(p_phone, 4, 3) || '-' || 
+                      SUBSTR(p_phone, 7, 4);
+END;
+/
+
+DECLARE
+    lv_phone_txt VARCHAR2(13) := '1112223333';
+BEGIN
+    phone_fmt_sp(lv_phone_txt);
+    DBMS_OUTPUT.PUT_LINE(lv_phone_txt);
+END;
+/
