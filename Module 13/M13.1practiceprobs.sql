@@ -233,12 +233,10 @@ SELECT sysdate, 'Thalia Edwards' FROM dual;
 CREATE OR REPLACE PACKAGE login_pkg IS
 pvg_shop_id bb_shopper.idshopper%TYPE;
 pvg_zip_prefix bb_shopper.zipcode%TYPE;
-
 FUNCTION verify_login_pf
   (p_user IN VARCHAR2,
    p_pass IN VARCHAR2)
   RETURN CHAR;
-
 END;
 /
 
@@ -268,17 +266,13 @@ FUNCTION verify_login_pf
       lv_match_found_txt := 'N';
       RETURN lv_match_found_txt;
     END IF;
-
   EXCEPTION
     WHEN NO_DATA_FOUND THEN
       DBMS_OUTPUT.PUT_LINE('Invalid login credentials.');
       RETURN lv_match_found_txt;
-      
   END verify_login_pf;
-
 END;
 /
-
 DECLARE
   lv_user_txt bb_shopper.username%TYPE := 'gma1';
   lv_pass_txt bb_shopper.password%TYPE := 'goofy';
@@ -295,6 +289,7 @@ BEGIN
   END IF;
 END;
 /
+
 /* Assignment 7-5
 In this assignment, you create packaged procedures to retrieve shopper information.
 Brewbean’s is adding an application page where customer service agents can retrieve shopper
@@ -306,3 +301,77 @@ to the same shopper, so they should return the same shopper information.
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
+CREATE OR REPLACE PACKAGE shop_query_pkg IS
+  PROCEDURE retrieve_shopper_info_pp
+  (p_id IN bb_shopper.idshopper%TYPE,
+   p_name OUT VARCHAR2,
+   p_city OUT VARCHAR2,
+   p_state OUT VARCHAR2,
+   p_phone OUT VARCHAR2,
+   p_email OUT VARCHAR2);
+
+   PROCEDURE retrieve_shopper_info_pp
+  (p_last IN bb_shopper.lastname%TYPE,
+   p_name OUT VARCHAR2,
+   p_city OUT VARCHAR2,
+   p_state OUT VARCHAR2,
+   p_phone OUT VARCHAR2,
+   p_email OUT VARCHAR2);
+END;
+/
+CREATE OR REPLACE PACKAGE BODY shop_query_pkg IS
+  PROCEDURE retrieve_shopper_info_pp
+  (p_id IN bb_shopper.idshopper%TYPE,
+   p_name OUT VARCHAR2,
+   p_city OUT VARCHAR2,
+   p_state OUT VARCHAR2,
+   p_phone OUT VARCHAR2,
+   p_email OUT VARCHAR2)
+  IS
+  BEGIN
+    SELECT firstname||' '||lastname, city, state, phone, email
+    INTO p_name, p_city, p_state, p_phone, p_email
+    FROM bb_shopper
+    WHERE idshopper = p_id;
+  END retrieve_shopper_info_pp;
+
+  PROCEDURE retrieve_shopper_info_pp
+  (p_last IN bb_shopper.lastname%TYPE,
+   p_name OUT VARCHAR2,
+   p_city OUT VARCHAR2,
+   p_state OUT VARCHAR2,
+   p_phone OUT VARCHAR2,
+   p_email OUT VARCHAR2)
+  IS
+  BEGIN
+    SELECT firstname||' '||lastname, city, state, phone, email
+    INTO p_name, p_city, p_state, p_phone, p_email
+    FROM bb_shopper
+    WHERE lastname = p_last;
+  END retrieve_shopper_info_pp;
+END;
+/
+DECLARE
+  lv_name VARCHAR2(50);
+  lv_city VARCHAR2(30);
+  lv_state VARCHAR2(3);
+  lv_phone VARCHAR2(15);
+  lv_email VARCHAR2(50);
+BEGIN
+  shop_query_pkg.retrieve_shopper_info_pp(23, lv_name, lv_city, lv_state, lv_phone, lv_email);
+  DBMS_OUTPUT.PUT_LINE('Shopper Info by ID: ');
+  DBMS_OUTPUT.PUT_LINE('Name: ' || lv_name);
+  DBMS_OUTPUT.PUT_LINE('City: ' || lv_city);
+  DBMS_OUTPUT.PUT_LINE('State: ' || lv_state);
+  DBMS_OUTPUT.PUT_LINE('Phone: ' || lv_phone);
+  DBMS_OUTPUT.PUT_LINE('Email: ' || lv_email);
+
+  shop_query_pkg.retrieve_shopper_info_pp('Ratman', lv_name, lv_city, lv_state, lv_phone, lv_email);
+  DBMS_OUTPUT.PUT_LINE('Shopper Info by Last Name: ');
+  DBMS_OUTPUT.PUT_LINE('Name: ' || lv_name);
+  DBMS_OUTPUT.PUT_LINE('City: ' || lv_city);
+  DBMS_OUTPUT.PUT_LINE('State: ' || lv_state);
+  DBMS_OUTPUT.PUT_LINE('Phone: ' || lv_phone);
+  DBMS_OUTPUT.PUT_LINE('Email: ' || lv_email);
+END;
+/
