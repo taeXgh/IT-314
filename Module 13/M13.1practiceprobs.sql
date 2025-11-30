@@ -112,69 +112,124 @@ END;
 /
 
 DECLARE
-    lv_shop_num NUMBER;
-    lv_order_date DATE;
-    lv_ship_name VARCHAR2(25);
-    lv_basket_id NUMBER := 12;
+  lv_bask_num bb_basket.idbasket%TYPE := 12;
+  lv_shop_num bb_basket.idshopper%TYPE;
+  lv_date DATE;
+  lv_ship_name VARCHAR2(50);
 BEGIN
-    order_info_pkg.basket_info_pp(lv_basket_id, lv_shop_num, lv_order_date);
-    DBMS_OUTPUT.PUT_LINE('Order Date: ' || lv_order_date);
+  lv_ship_name := order_info_pkg.ship_name_pf(lv_bask_num);
+  order_info_pkg.basket_info_pp(lv_bask_num, lv_shop_num, lv_date);
+  DBMS_OUTPUT.PUT_LINE(lv_date);
+  DBMS_OUTPUT.PUT_LINE(lv_ship_name);
 END;
 /
 
+SELECT idbasket, order_info_pkg.ship_name_pf(idbasket) AS ship_name
+FROM bb_basket
+WHERE idbasket = 12;
+
 /* Assignment 7-3
+In this assignment, you modify a package to make program units private. The Brewbean’s
+programming group decided that the SHIP_NAME_PF function in the ORDER_INFO_PKG
+package should be used only from inside the package. Follow these steps to make this
+modification:
+2. Modify the package code to add to the BASKET_INFO_PP procedure so that it also returns
+the name an order is shipped by using the SHIP_NAME_PF function. Make the necessary
+changes to make the SHIP_NAME_PF function private.
+3. Create the package by using the modified code.
+4. Create and run an anonymous block that calls the BASKET_INFO_PP procedure and
+displays the shopper ID, order date, and shipped-to name to check the values returned.
+Use DBMS_OUTPUT statements to display the values.
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
 CREATE OR REPLACE PACKAGE order_info_pkg IS
- FUNCTION ship_name_pf  
-   (p_basket IN NUMBER)
-   RETURN VARCHAR2;
  PROCEDURE basket_info_pp
   (p_basket IN NUMBER,
    p_shop OUT NUMBER,
-   p_date OUT DATE);
+   p_date OUT DATE,
+   p_name OUT VARCHAR2);
 END;
-
-CREATE OR REPLACE PACKAGE BODY order_info_pkg IS
- FUNCTION ship_name_pf  
-   (p_basket IN NUMBER)
-   RETURN VARCHAR2
+/
+CREATE OR REPLACE PACKAGE BODY order_info_pkg 
+IS
+  FUNCTION ship_name_pf  
+  (p_basket IN NUMBER)
+  RETURN VARCHAR2
   IS
-   lv_name_txt VARCHAR2(25);
- BEGIN
-  SELECT shipfirstname||' '||shiplastname
-   INTO lv_name_txt
-   FROM bb_basket
-   WHERE idBasket = p_basket;
-  RETURN lv_name_txt;
- EXCEPTION
-   WHEN NO_DATA_FOUND THEN
-     DBMS_OUTPUT.PUT_LINE('Invalid basket id');
- END ship_name_pf;
- PROCEDURE basket_info_pp
+    lv_name_txt VARCHAR2(25);
+  BEGIN
+    SELECT shipfirstname||' '||shiplastname
+      INTO lv_name_txt
+      FROM bb_basket
+      WHERE idBasket = p_basket;
+      RETURN lv_name_txt;
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Invalid basket id');
+  END ship_name_pf;
+
+  PROCEDURE basket_info_pp
   (p_basket IN NUMBER,
    p_shop OUT NUMBER,
-   p_date OUT DATE)
+   p_date OUT DATE,
+   p_name OUT VARCHAR2)
   IS
- BEGIN
-   SELECT idshopper, dtordered
-    INTO p_shop, p_date
-    FROM bb_basket
-    WHERE idbasket = p_basket;
+  BEGIN
+    SELECT idshopper, dtordered
+      INTO p_shop, p_date
+      FROM bb_basket
+      WHERE idbasket = p_basket;
+    p_name := ship_name_pf(p_basket);
  EXCEPTION
-   WHEN NO_DATA_FOUND THEN
-     DBMS_OUTPUT.PUT_LINE('Invalid basket id');
+    WHEN NO_DATA_FOUND THEN
+      DBMS_OUTPUT.PUT_LINE('Invalid basket id');
  END basket_info_pp;
 END;
+/
+
+DECLARE
+  lv_bask_num bb_basket.idbasket%TYPE := 12;
+  lv_shop_num bb_basket.idshopper%TYPE;
+  lv_date DATE;
+  lv_ship_name VARCHAR2(50);
+BEGIN
+  order_info_pkg.basket_info_pp(lv_bask_num, lv_shop_num, lv_date, lv_ship_name);
+  DBMS_OUTPUT.PUT_LINE('Shopper ID: ' || lv_shop_num || ' | Order Date: ' || lv_date || ' | Ship Name: ' || lv_ship_name);
+END;
+/
 
 /* Assignment 7-4
+In this assignment, you create a package that uses packaged variables to assist in the user
+logon process. When a returning shopper logs on, the username and password entered need
+to be verified against the database. In addition, two values need to be stored in packaged
+variables for reference during the user session: the shopper ID and the first three digits of
+the shopper’s zip code (used for regional advertisements displayed on the site).
+1. Create a function that accepts a username and password as arguments and verifies these
+values against the database for a match. If a match is found, return the value Y. Set the
+value of the variable holding the return value to N. Include a NO_DATA_FOUND exception
+handler to display a message that the logon values are invalid.
+2. Use an anonymous block to test the procedure, using the username gma1 and the
+password goofy.
+3. Now place the function in a package, and add code to create and populate the packaged
+variables specified earlier. Name the package LOGIN_PKG.
+4. Use an anonymous block to test the packaged procedure, using the username gma1 and
+the password goofy to verify that the procedure works correctly.
+5. Use DBMS_OUTPUT statements in an anonymous block to display the values stored in the
+packaged variables.
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
 
 
 /* Assignment 7-5
+In this assignment, you create packaged procedures to retrieve shopper information.
+Brewbean’s is adding an application page where customer service agents can retrieve shopper
+information by using shopper ID or last name. Create a package named SHOP_QUERY_PKG
+containing overloaded procedures to perform these lookups. They should return the shopper’s
+name, city, state, phone number, and e-mail address. Test the package twice. First, call the
+procedure with shopper ID 23, and then call it with the last name Ratman. Both test values refer
+to the same shopper, so they should return the same shopper information.
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
