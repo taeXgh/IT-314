@@ -74,9 +74,10 @@ associated pledges (including pledge ID, first payment due date, and last paymen
 due date). A donor ID is the input value for the procedure.
 • Make the procedure public and the two functions private.
 Test the procedure with an anonymous block.*/
+drop package pledge_pkg;
+/
+
 SELECT sysdate, 'Thalia Edwards' FROM dual;
-
-
 
 CREATE OR REPLACE PACKAGE PLEDGE_PKG IS
     PROCEDURE dd_plist_pp
@@ -107,8 +108,10 @@ CREATE OR REPLACE PACKAGE BODY PLEDGE_PKG IS
     IS
         lv_pay1_dat DATE;
         lv_mths_num dd_pledge.paymonths%TYPE;
+        lv_func_result DATE;
     BEGIN
-        SELECT DD_PAYDATE1_PF(p_pledge_id), paymonths - 1
+        lv_func_result := DD_PAYDATE1_PF(p_pledge_id);
+        SELECT lv_func_result, paymonths - 1
             INTO lv_pay1_dat, lv_mths_num
             FROM dd_pledge
             WHERE idpledge = p_pledge_id;
@@ -123,6 +126,7 @@ CREATE OR REPLACE PACKAGE BODY PLEDGE_PKG IS
     (p_donor_id IN dd_donor.iddonor%TYPE) 
     IS
         lv_donor_name VARCHAR2(50);
+        lv_pledge_count NUMBER;
         CURSOR cur_pledge IS
             SELECT idpledge
             FROM dd_pledge
@@ -133,7 +137,16 @@ CREATE OR REPLACE PACKAGE BODY PLEDGE_PKG IS
         FROM dd_donor
         WHERE iddonor = p_donor_id;
         
+        SELECT COUNT(*)
+        INTO lv_pledge_count
+        FROM dd_pledge
+        WHERE iddonor = p_donor_id;
+
         DBMS_OUTPUT.PUT_LINE('Donor: ' || lv_donor_name);
+        IF lv_pledge_count = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('No pledges found for this donor.');
+        END IF;
+
         FOR rec_pledge IN cur_pledge LOOP
             DBMS_OUTPUT.PUT_LINE(
                 'Pledge ID: ' || rec_pledge.idpledge || 
@@ -149,7 +162,7 @@ END pledge_pkg;
 /
 --test the procedure with an anonymous block
 DECLARE
-    lv_donor_id dd_donor.iddonor%TYPE := 3;
+    lv_donor_id dd_donor.iddonor%TYPE := 305;
 BEGIN
     PLEDGE_PKG.dd_plist_pp(lv_donor_id);
 END;
@@ -168,32 +181,143 @@ being returned by means of a single parameter in the procedure. For each pledge 
 make sure the pledge ID, donor’s last name, pledge payment amount, and pledge payment
 date are displayed.
 */
+drop package pledge_pkg;
+/
+
+/* procedure brainstorming
+ SELECT lastname, PAYAMT, PAYDATE
+FROM dd_donor INNER JOIN dd_pledge
+USING (iddonor)
+INNER JOIN dd_payment
+USING (idpledge)
+WHERE iddonor = 303
+ORDER BY idpledge, PAYDATE; */
+
 SELECT sysdate, 'Thalia Edwards' FROM dual;
-DECLARE
-    TYPE type_pledge IS TABLE OF dd_pledge%ROWTYPE
-        INDEX BY PLS_INTEGER;
-    tbl_pledge type_pledge;
-BEGIN
-    SELECT * BULK COLLECT INTO tbl_pledge
-    FROM dd_pledge
-    WHERE TO_CHAR(pledgedate, 'MM') = '09'
-    ORDER BY paymonths;
-    FOR i IN 1..tbl_pledge.COUNT LOOP
-    CASE
-        WHEN tbl_pledge(i).paymonths = 0 THEN
-            DBMS_OUTPUT.PUT_LINE('PledgeID: ' || tbl_pledge(i).idpledge || 
-            ' | DonorID: ' || tbl_pledge(i).iddonor || 
-            ' | PledgeAmount: ' || tbl_pledge(i).pledgeamt || 
-            ' | PaymentType: Lump Sum');
-        ELSE
-            DBMS_OUTPUT.PUT_LINE('PledgeID: ' || tbl_pledge(i).idpledge || 
-            ' | DonorID: ' || tbl_pledge(i).iddonor || 
-            ' | PledgeAmount: ' || tbl_pledge(i).pledgeamt || 
-            ' | PaymentType: Monthly - ' || tbl_pledge(i).paymonths);
-    END CASE;
-    END LOOP;
+
+CREATE OR REPLACE PACKAGE PLEDGE_PKG IS
+    PROCEDURE dd_plist_pp
+    (p_donor_id IN dd_donor.iddonor%TYPE);
+    PROCEDURE dd_pays_pp
+    (p_donor_id IN dd_donor.iddonor%TYPE);
 END;
-/ 
+/
+CREATE OR REPLACE PACKAGE BODY PLEDGE_PKG IS
+    FUNCTION DD_PAYDATE1_PF 
+    (p_pledge_id IN NUMBER) 
+    RETURN DATE
+    IS
+        lv_pl_dat DATE;
+        lv_mth_txt VARCHAR2(2);
+        lv_yr_txt VARCHAR2(4);
+    BEGIN
+        SELECT ADD_MONTHS(pledgedate,1)
+            INTO lv_pl_dat
+            FROM dd_pledge
+            WHERE idpledge = p_pledge_id;
+        lv_mth_txt := TO_CHAR(lv_pl_dat,'mm');
+        lv_yr_txt := TO_CHAR(lv_pl_dat,'yyyy');
+        RETURN TO_DATE((lv_mth_txt || '-01-' || lv_yr_txt),'mm-dd-yyyy');
+    END DD_PAYDATE1_PF;
+
+    FUNCTION DD_PAYEND_PF 
+    (p_pledge_id IN NUMBER) 
+    RETURN DATE 
+    IS
+        lv_pay1_dat DATE;
+        lv_mths_num dd_pledge.paymonths%TYPE;
+        lv_func_result DATE;
+    BEGIN
+        lv_func_result := DD_PAYDATE1_PF(p_pledge_id);
+        SELECT lv_func_result, paymonths - 1
+            INTO lv_pay1_dat, lv_mths_num
+            FROM dd_pledge
+            WHERE idpledge = p_pledge_id;
+        IF lv_mths_num = 0 THEN
+             RETURN lv_pay1_dat;
+        ELSE
+             RETURN ADD_MONTHS(lv_pay1_dat, lv_mths_num);
+        END IF;
+    END DD_PAYEND_PF;
+
+    PROCEDURE dd_plist_pp
+    (p_donor_id IN dd_donor.iddonor%TYPE) 
+    IS
+        lv_donor_name VARCHAR2(50);
+        lv_pledge_count NUMBER;
+        CURSOR cur_pledge IS
+            SELECT idpledge
+            FROM dd_pledge
+            WHERE iddonor = p_donor_id;
+    BEGIN
+        SELECT firstname || ' ' || lastname
+        INTO lv_donor_name
+        FROM dd_donor
+        WHERE iddonor = p_donor_id;
+        
+        SELECT COUNT(*)
+        INTO lv_pledge_count
+        FROM dd_pledge
+        WHERE iddonor = p_donor_id;
+
+        DBMS_OUTPUT.PUT_LINE('Donor: ' || lv_donor_name);
+        IF lv_pledge_count = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('No pledges found for this donor.');
+        END IF;
+
+        FOR rec_pledge IN cur_pledge LOOP
+            DBMS_OUTPUT.PUT_LINE(
+                'Pledge ID: ' || rec_pledge.idpledge || 
+                ' | First Payment: ' || TO_CHAR(DD_PAYDATE1_PF(rec_pledge.idpledge), 'MM-DD-YYYY') ||
+                ' | Last Payment: ' || TO_CHAR(DD_PAYEND_PF(rec_pledge.idpledge), 'MM-DD-YYYY')
+            );
+        END LOOP;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                DBMS_OUTPUT.PUT_LINE('No donor found with that ID.');
+    END dd_plist_pp;
+    PROCEDURE dd_pays_pp
+    (p_donor_id IN dd_donor.iddonor%TYPE)
+    IS
+        lv_pledge_count NUMBER;
+        CURSOR cur_payment IS
+            SELECT lastname, PAYAMT, PAYDATE
+            FROM dd_donor INNER JOIN dd_pledge
+            USING (iddonor)
+            INNER JOIN dd_payment
+            USING (idpledge)
+            WHERE iddonor = p_donor_id
+            ORDER BY idpledge, PAYDATE;
+    BEGIN
+        SELECT COUNT(*)
+        INTO lv_pledge_count
+        FROM dd_pledge
+        WHERE iddonor = p_donor_id;
+
+        IF lv_pledge_count = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('No payments found for this donor.');
+        END IF;
+
+        FOR rec_payment IN cur_payment LOOP
+            DBMS_OUTPUT.PUT_LINE(
+                'Last Name: ' || rec_payment.lastname ||
+                ' | Payment Amount: ' || rec_payment.PAYAMT ||
+                ' | Payment Date: ' || TO_CHAR(rec_payment.PAYDATE, 'MON-DD-YYYY')
+            );
+        END LOOP;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                DBMS_OUTPUT.PUT_LINE('No payments found for this donor.');
+    END dd_pays_pp;
+END pledge_pkg;
+/
+--test the procedure with an anonymous block
+DECLARE
+    lv_donor_id dd_donor.iddonor%TYPE := 301;
+BEGIN
+    PLEDGE_PKG.dd_pays_pp(lv_donor_id);
+END;
+/
 
 /* Assignment 9-9
 The DoGood Donor organization wants to track all pledge payment activity. Each time a pledge
