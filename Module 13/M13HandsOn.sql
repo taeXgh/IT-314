@@ -327,5 +327,59 @@ and the idpay value for the payment record. Create a table named DD_PAYTRACK to 
 this information. Include a primary key column to be populated by a sequence, and create a
 new sequence named DD_PTRACK_SEQ for the primary key column. Create a single trigger for
 recording the requested information to track pledge payment activity, and test the trigger.*/
+drop TABLE DD_PAYTRACK;
+drop SEQUENCE DD_PAYTRACK_SEQ;
 SELECT sysdate, 'Thalia Edwards' FROM dual;
+--create a table named DD_PAYTRACK
+CREATE TABLE DD_PAYTRACK
+(idtrack NUMBER PRIMARY KEY, --primary key column
+ username VARCHAR2(30),
+ currentDate DATE,
+ action_type VARCHAR2(10),
+ idpay NUMBER);
+--create a new sequence named DD_PTRACK_SEQ for the primary key column
+CREATE SEQUENCE DD_PAYTRACK_SEQ
+    INCREMENT BY 1
+    START WITH 400
+    NOCACHE;
+/
+--create a trigger to record the requested information to track pledge payment activity
+CREATE OR REPLACE TRIGGER dd_paytrack_trg
+    AFTER INSERT OR UPDATE OR DELETE ON dd_payment
+    FOR EACH ROW
+DECLARE
+    lv_username VARCHAR2(30):= 'TEDWAR6';
+BEGIN
+    IF INSERTING THEN
+            INSERT INTO DD_PAYTRACK (idtrack, username, currentDate, action_type, idpay)
+            VALUES (DD_PAYTRACK_SEQ.NEXTVAL, lv_username, SYSDATE, 'INSERT', :NEW.idpay);
+    ELSIF UPDATING THEN
+        INSERT INTO DD_PAYTRACK (idtrack, username, currentDate, action_type, idpay)
+        VALUES (DD_PAYTRACK_SEQ.NEXTVAL, lv_username, SYSDATE, 'UPDATE', :NEW.idpay);
+    ELSIF DELETING THEN
+        INSERT INTO DD_PAYTRACK (idtrack, username, currentDate, action_type, idpay)
+        VALUES (DD_PAYTRACK_SEQ.NEXTVAL, lv_username, SYSDATE, 'DELETE', :OLD.idpay);
+    END IF;
+END;
+/
+--test the trigger
+INSERT INTO dd_payment (idpay, idpledge, payamt, paydate)
+VALUES (1465, 103, 150, TO_DATE('15-SEP-2024', 'DD-MON-YYYY'));
+COMMIT;
 
+--SELECT * FROM DD_PAYTRACK;
+
+UPDATE dd_payment
+SET payamt = 175
+WHERE idpay = 1465;
+COMMIT;
+
+--SELECT * FROM DD_PAYTRACK;
+
+DELETE FROM dd_payment
+WHERE idpay = 1465;
+COMMIT;
+
+SELECT * FROM DD_PAYTRACK;
+ROLLBACK;
+ALTER TRIGGER dd_paytrack_trg DISABLE;
