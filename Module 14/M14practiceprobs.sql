@@ -37,9 +37,9 @@ FROM HOMEWORK13;
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
 CREATE OR REPLACE VIEW REORDERINFO AS
-SELECT isbn, title, contact, phone
-FROM books INNER JOIN publisher2
-USING (pubid);
+SELECT b.isbn, b.title, p.contact, p.phone
+FROM books b, publisher2 p
+WHERE b.pubid = p.id;
 
 SELECT *
 FROM REORDERINFO;
@@ -70,17 +70,21 @@ FROM REORDERINFO;
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
 DELETE FROM REORDERINFO
-WHERE isbn = '22';
+WHERE isbn = '0401140733';
 
 SELECT *
 FROM REORDERINFO;
 
+
 -- Assignment 13-9
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
-ROLLBACK;
+ROLLBACK TO before_dml;
 
 -- Assignment 13-10
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
 DROP VIEW REORDERINFO;
+
+SELECT *
+FROM REORDERINFO;
