@@ -1,3 +1,4 @@
+--determines the first payment due date for a pledge based on pledge ID
 CREATE OR REPLACE FUNCTION dd_paydate1_sf
   (p_id IN dd_pledge.idpledge%TYPE)
   RETURN DATE
@@ -14,7 +15,8 @@ BEGIN
   lv_yr_txt := TO_CHAR(lv_pl_dat,'yyyy');
   RETURN TO_DATE((lv_mth_txt || '-01-' || lv_yr_txt),'mm-dd-yyyy');
 END;
-
+/
+--determines the final payment due date for a pledge based on pledge ID
 CREATE OR REPLACE FUNCTION dd_payend_sf
   (p_id IN dd_pledge.idpledge%TYPE)
   RETURN DATE
@@ -32,4 +34,4 @@ BEGIN
      RETURN ADD_MONTHS(lv_pay1_dat, lv_mths_num);
   END IF;
 END;
-
+/

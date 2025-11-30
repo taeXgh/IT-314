@@ -1,114 +1,172 @@
-/* Assignment 3-9
-Create a PL/SQL block that retrieves and displays information for a specific project based on
-Project ID. Display the following on a single row of output: project ID, project name, number of
-pledges made, total dollars pledged, and the average pledge amount.*/
+/* Assignment 7-9
+Create a package named PLEDGE_PKG that includes two functions for determining dates of
+pledge payments. Use or create the functions described in Chapter 6 for Assignments 6-12 and
+6-13, using the names DD_PAYDATE1_PF and DD_PAYEND_PF for these packaged functions.
+Test both functions with a specific pledge ID, using an anonymous block. Then test both
+functions in a single query showing all pledges and associated payment dates.
+*/
 SELECT sysdate, 'Thalia Edwards' FROM dual;
+
+CREATE OR REPLACE PACKAGE PLEDGE_PKG IS
+    FUNCTION DD_PAYDATE1_PF 
+    (p_pledge_id IN NUMBER) 
+    RETURN DATE;
+    FUNCTION DD_PAYEND_PF 
+    (p_pledge_id IN NUMBER) 
+    RETURN DATE;
+END PLEDGE_PKG;
+/
+CREATE OR REPLACE PACKAGE BODY PLEDGE_PKG IS
+    FUNCTION DD_PAYDATE1_PF 
+    (p_pledge_id IN NUMBER) 
+    RETURN DATE IS
+        lv_pl_dat DATE;
+        lv_mth_txt VARCHAR2(2);
+        lv_yr_txt VARCHAR2(4);
+    BEGIN
+        SELECT ADD_MONTHS(pledgedate,1)
+            INTO lv_pl_dat
+            FROM dd_pledge
+            WHERE idpledge = p_pledge_id;
+        lv_mth_txt := TO_CHAR(lv_pl_dat,'mm');
+        lv_yr_txt := TO_CHAR(lv_pl_dat,'yyyy');
+        RETURN TO_DATE((lv_mth_txt || '-01-' || lv_yr_txt),'mm-dd-yyyy');
+    END DD_PAYDATE1_PF;
+
+    FUNCTION DD_PAYEND_PF 
+    (p_pledge_id IN NUMBER) 
+    RETURN DATE IS
+        lv_pay1_dat DATE;
+        lv_mths_num dd_pledge.paymonths%TYPE;
+    BEGIN
+        SELECT DD_PAYDATE1_PF(p_pledge_id), paymonths - 1
+            INTO lv_pay1_dat, lv_mths_num
+            FROM dd_pledge
+            WHERE idpledge = p_pledge_id;
+        IF lv_mths_num = 0 THEN
+             RETURN lv_pay1_dat;
+        ELSE
+             RETURN ADD_MONTHS(lv_pay1_dat, lv_mths_num);
+        END IF;
+    END DD_PAYEND_PF;
+END;
+/
+--test both functions with a specific pledge ID, using an anonymous block
 DECLARE
-    TYPE type_project IS RECORD(
-        project dd_project.idproj%TYPE,
-        name dd_project.projname%TYPE,
-        num_pledges NUMBER(3),
-        total_pledged NUMBER(7,2),
-        avg_pledge NUMBER(7,2)
-    );
-    rec_project type_project;
-    lv_proj_num dd_project.idproj%TYPE := 500;
-
+    lv_pledge_id dd_pledge.idpledge%TYPE := 105;
 BEGIN
-    SELECT idproj, projname, COUNT(idpledge), SUM(pledgeamt), AVG(pledgeamt)
-    INTO rec_project
-    FROM dd_project
-    INNER JOIN dd_pledge
-        USING (idproj)
-    WHERE idproj = lv_proj_num
-    GROUP BY idproj, projname;
-    DBMS_OUTPUT.PUT_LINE('ProjectID ProjectName NumPledges TotalPledged AvgPledge');
-    DBMS_OUTPUT.PUT_LINE(rec_project.project || ' ' || 
-                         rec_project.name || ' ' || 
-                         rec_project.num_pledges || ' ' || 
-                         rec_project.total_pledged || ' ' || 
-                         rec_project.avg_pledge);
+    DBMS_OUTPUT.PUT_LINE('First Payment Due Date: ' || 
+    TO_CHAR(PLEDGE_PKG.DD_PAYDATE1_PF(lv_pledge_id), 'MM-DD-YYYY'));
+    DBMS_OUTPUT.PUT_LINE('Final Payment Due Date: ' || 
+    TO_CHAR(PLEDGE_PKG.DD_PAYEND_PF(lv_pledge_id), 'MM-DD-YYYY'));
+END;
+/
+--test both functions in a single query showing all pledges and associated payment dates
+SELECT idpledge,
+       TO_CHAR(PLEDGE_PKG.DD_PAYDATE1_PF(idpledge), 'MON-DD-YYYY') AS first_payment_due_date,
+       TO_CHAR(PLEDGE_PKG.DD_PAYEND_PF(idpledge), 'MON-DD-YYYY') AS final_payment_due_date
+FROM dd_pledge;
 
+/* Assignment 7-10
+Modify the package created in Assignment 7-9 as follows:
+• Add a procedure named DD_PLIST_PP that displays the donor name and all
+associated pledges (including pledge ID, first payment due date, and last payment
+due date). A donor ID is the input value for the procedure.
+• Make the procedure public and the two functions private.
+Test the procedure with an anonymous block.*/
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+
+
+
+CREATE OR REPLACE PACKAGE PLEDGE_PKG IS
+    PROCEDURE dd_plist_pp
+    (p_donor_id IN dd_donor.iddonor%TYPE);
+END;
+/
+CREATE OR REPLACE PACKAGE BODY PLEDGE_PKG IS
+    FUNCTION DD_PAYDATE1_PF 
+    (p_pledge_id IN NUMBER) 
+    RETURN DATE
+    IS
+        lv_pl_dat DATE;
+        lv_mth_txt VARCHAR2(2);
+        lv_yr_txt VARCHAR2(4);
+    BEGIN
+        SELECT ADD_MONTHS(pledgedate,1)
+            INTO lv_pl_dat
+            FROM dd_pledge
+            WHERE idpledge = p_pledge_id;
+        lv_mth_txt := TO_CHAR(lv_pl_dat,'mm');
+        lv_yr_txt := TO_CHAR(lv_pl_dat,'yyyy');
+        RETURN TO_DATE((lv_mth_txt || '-01-' || lv_yr_txt),'mm-dd-yyyy');
+    END DD_PAYDATE1_PF;
+
+    FUNCTION DD_PAYEND_PF 
+    (p_pledge_id IN NUMBER) 
+    RETURN DATE 
+    IS
+        lv_pay1_dat DATE;
+        lv_mths_num dd_pledge.paymonths%TYPE;
+    BEGIN
+        SELECT DD_PAYDATE1_PF(p_pledge_id), paymonths - 1
+            INTO lv_pay1_dat, lv_mths_num
+            FROM dd_pledge
+            WHERE idpledge = p_pledge_id;
+        IF lv_mths_num = 0 THEN
+             RETURN lv_pay1_dat;
+        ELSE
+             RETURN ADD_MONTHS(lv_pay1_dat, lv_mths_num);
+        END IF;
+    END DD_PAYEND_PF;
+
+    PROCEDURE dd_plist_pp
+    (p_donor_id IN dd_donor.iddonor%TYPE) 
+    IS
+        lv_donor_name VARCHAR2(50);
+        CURSOR cur_pledge IS
+            SELECT idpledge
+            FROM dd_pledge
+            WHERE iddonor = p_donor_id;
+    BEGIN
+        SELECT firstname || ' ' || lastname
+        INTO lv_donor_name
+        FROM dd_donor
+        WHERE iddonor = p_donor_id;
+        
+        DBMS_OUTPUT.PUT_LINE('Donor: ' || lv_donor_name);
+        FOR rec_pledge IN cur_pledge LOOP
+            DBMS_OUTPUT.PUT_LINE(
+                'Pledge ID: ' || rec_pledge.idpledge || 
+                ' | First Payment: ' || TO_CHAR(DD_PAYDATE1_PF(rec_pledge.idpledge), 'MM-DD-YYYY') ||
+                ' | Last Payment: ' || TO_CHAR(DD_PAYEND_PF(rec_pledge.idpledge), 'MM-DD-YYYY')
+            );
+        END LOOP;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                DBMS_OUTPUT.PUT_LINE('No donor found with that ID.');
+    END dd_plist_pp;
+END pledge_pkg;
+/
+--test the procedure with an anonymous block
+DECLARE
+    lv_donor_id dd_donor.iddonor%TYPE := 3;
+BEGIN
+    PLEDGE_PKG.dd_plist_pp(lv_donor_id);
 END;
 /
 
-
-DROP TABLE dd_project CASCADE CONSTRAINTS;
-CREATE TABLE DD_Project (
-                   idProj number(6),
-                   Projname varchar2(60),
-                   Projstartdate DATE,
-                   Projenddate DATE,
-                   Projfundgoal number(12,2),
-                   ProjCoord varchar2(20),
-                   CONSTRAINT project_id_pk PRIMARY KEY(idProj),
-                   CONSTRAINT project_name_uk  UNIQUE (Projname)  );  
-INSERT INTO dd_project
-  VALUES (500,'Elders Assistance League', '01-SEP-2012','31-OCT-2012',15000,'Shawn Hasee');
-INSERT INTO dd_project
-  VALUES (501,'Community food pantry #21 freezer equipment', '01-OCT-2012','31-DEC-2012',65000,'Shawn Hasee');
-INSERT INTO dd_project
-  VALUES (502,'Lang Scholarship Fund', '01-JAN-2013','01-NOV-2013',100000,'Traci Brown');
-INSERT INTO dd_project
-  VALUES (503,'Animal shelter Vet Connect Program', '01-DEC-2012','30-MAR-2013',25000,'Traci Brown');
-INSERT INTO dd_project
-  VALUES (504,'Shelter Share Project 2013', '01-FEB-2013','31-JUL-2013',35000,'Traci Brown');
-drop SEQUENCE DD_PROJID_SEQ;
-COMMIT;
-
-/* Assignment 3-10
-Create a PL/SQL block to handle adding a new project. Create and use a sequence named
-DD_PROJID_SEQ to handle generating and populating the project ID. The first number issued
-by this sequence should be 530, and no caching should be used. 
-Use a record variable to handle the data to be added. 
-Data for the new row should be the following: 
-project name = HK Animal Shelter Extension, start = 1/1/2013, end = 5/31/2013, and fundraising goal = $65,000.
-Any columns not addressed in the data list are currently unknown.*/
-SELECT sysdate, 'Thalia Edwards' FROM dual;
-
-CREATE SEQUENCE DD_PROJID_SEQ
-        INCREMENT BY 1
-        START WITH 530
-        NOCACHE;
-DECLARE
-    TYPE type_project IS RECORD(
-        project dd_project.idproj%TYPE,
-        name dd_project.projname%TYPE,
-        startdt dd_project.projstartdate%TYPE,
-        enddt dd_project.projenddate%TYPE,
-        fundgoal dd_project.projfundgoal%TYPE
-    );
-    rec_project type_project;
-    
-BEGIN
-    rec_project.project := DD_PROJID_SEQ.NEXTVAL;
-    rec_project.name := 'HK Animal Shelter Extension';
-    rec_project.startdt := TO_DATE('01-JAN-2013', 'DD-MON-YYYY');
-    rec_project.enddt := TO_DATE('31-MAY-2013', 'DD-MON-YYYY');
-    rec_project.fundgoal := 65000;
-
-    INSERT INTO DD_PROJECT (idproj, projname, projstartdate, projenddate, projfundgoal)
-    VALUES (rec_project.project, 
-    rec_project.name, 
-    rec_project.startdt, 
-    rec_project.enddt, 
-    rec_project.fundgoal);
-    COMMIT;
-
-    DBMS_OUTPUT.PUT_LINE(rec_project.project || ' | ' || rec_project.name || ' | ' ||
-        TO_CHAR(rec_project.startdt, 'MM/DD/YYYY') || ' | ' || TO_CHAR(rec_project.enddt, 'MM/DD/YYYY') || ' | ' || rec_project.fundgoal);
-END;
-/
-
-/* Assignment 3-11
-Create a PL/SQL block to retrieve and display data for all pledges made in a specified month.
-One row of output should be displayed for each pledge.
-Include the following in each row of output:
-Pledge ID, donor ID, and pledge amount
-If the pledge is being paid in a lump sum, display “Lump Sum.”
-If the pledge is being paid in monthly payments, display “Monthly - #” (with the #
-representing the number of months for payment).
-The list should be sorted to display all lump sum pledges first.
+/* Assignment 7-11
+Modify the package created in Assignment 7-10 as follows:
+• Add a new procedure named DD_PAYS_PP that retrieves donor pledge payment
+information and returns all the required data via a single parameter.
+• A donor ID is the input for the procedure.
+• The procedure should retrieve the donor’s last name and each pledge payment
+made so far (including payment amount and payment date).
+• Make the procedure public.
+Test the procedure with an anonymous block. The procedure call must handle the data
+being returned by means of a single parameter in the procedure. For each pledge payment,
+make sure the pledge ID, donor’s last name, pledge payment amount, and pledge payment
+date are displayed.
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 DECLARE
@@ -136,3 +194,14 @@ BEGIN
     END LOOP;
 END;
 / 
+
+/* Assignment 9-9
+The DoGood Donor organization wants to track all pledge payment activity. Each time a pledge
+payment is added, changed, or removed, the following information should be captured in a
+separate table: username (logon), current date, action taken (INSERT, UPDATE, or DELETE),
+and the idpay value for the payment record. Create a table named DD_PAYTRACK to hold
+this information. Include a primary key column to be populated by a sequence, and create a
+new sequence named DD_PTRACK_SEQ for the primary key column. Create a single trigger for
+recording the requested information to track pledge payment activity, and test the trigger.*/
+SELECT sysdate, 'Thalia Edwards' FROM dual;
+
