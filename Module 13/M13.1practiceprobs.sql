@@ -195,33 +195,106 @@ DECLARE
   lv_ship_name VARCHAR2(50);
 BEGIN
   order_info_pkg.basket_info_pp(lv_bask_num, lv_shop_num, lv_date, lv_ship_name);
-  DBMS_OUTPUT.PUT_LINE('Shopper ID: ' || lv_shop_num || ' | Order Date: ' || lv_date || ' | Ship Name: ' || lv_ship_name);
+  DBMS_OUTPUT.PUT_LINE( 'Shopper ID: ' || lv_shop_num || 
+                        ' | Order Date: ' || lv_date || 
+                        ' | Ship Name: ' || lv_ship_name);
 END;
 /
 
 /* Assignment 7-4
 In this assignment, you create a package that uses packaged variables to assist in the user
-logon process. When a returning shopper logs on, the username and password entered need
-to be verified against the database. In addition, two values need to be stored in packaged
-variables for reference during the user session: the shopper ID and the first three digits of
-the shopper’s zip code (used for regional advertisements displayed on the site).
+logon process. When a returning shopper logs on, 
+the username and password entered need to be verified against the database. 
+In addition, two values need to be stored in 
+packaged variables for reference during the user session: 
+1. the shopper ID 
+2. the first three digits of the shopper’s zip code 
+(used for regional advertisements displayed on the site).
+
 1. Create a function that accepts a username and password as arguments and verifies these
 values against the database for a match. If a match is found, return the value Y. Set the
 value of the variable holding the return value to N. Include a NO_DATA_FOUND exception
 handler to display a message that the logon values are invalid.
+
 2. Use an anonymous block to test the procedure, using the username gma1 and the
 password goofy.
+
 3. Now place the function in a package, and add code to create and populate the packaged
 variables specified earlier. Name the package LOGIN_PKG.
+
 4. Use an anonymous block to test the packaged procedure, using the username gma1 and
 the password goofy to verify that the procedure works correctly.
+
 5. Use DBMS_OUTPUT statements in an anonymous block to display the values stored in the
 packaged variables.
 */
 SELECT sysdate, 'Thalia Edwards' FROM dual;
 
+CREATE OR REPLACE PACKAGE login_pkg IS
+pvg_shop_id bb_shopper.idshopper%TYPE;
+pvg_zip_prefix bb_shopper.zipcode%TYPE;
 
+FUNCTION verify_login_pf
+  (p_user IN VARCHAR2,
+   p_pass IN VARCHAR2)
+  RETURN CHAR;
 
+END;
+/
+
+CREATE OR REPLACE PACKAGE BODY login_pkg IS
+FUNCTION verify_login_pf
+  (p_user IN VARCHAR2,
+   p_pass IN VARCHAR2)
+  RETURN CHAR
+  IS
+    lv_match_found_txt CHAR(1) := 'N';
+    lv_password bb_shopper.password%TYPE;
+  BEGIN
+    SELECT password
+    INTO lv_password
+    FROM bb_shopper
+    WHERE username = p_user;
+    IF lv_password = p_pass THEN
+      lv_match_found_txt := 'Y';
+      SELECT idshopper, SUBSTR(zipcode, 1, 3)
+      INTO pvg_shop_id, pvg_zip_prefix
+      FROM bb_shopper
+      WHERE username = p_user;
+      /* DBMS_OUTPUT.PUT_LINE('Shopper ID: ' || pvg_shop_id);
+      DBMS_OUTPUT.PUT_LINE('Zip Prefix: ' || pvg_zip_prefix); */
+      RETURN lv_match_found_txt;
+    ELSE
+      lv_match_found_txt := 'N';
+      RETURN lv_match_found_txt;
+    END IF;
+
+  EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      DBMS_OUTPUT.PUT_LINE('Invalid login credentials.');
+      RETURN lv_match_found_txt;
+      
+  END verify_login_pf;
+
+END;
+/
+
+DECLARE
+  lv_user_txt bb_shopper.username%TYPE := 'gma1';
+  lv_pass_txt bb_shopper.password%TYPE := 'goofy';
+  lv_return_char CHAR(1);
+BEGIN
+  lv_return_char := login_pkg.verify_login_pf(lv_user_txt, lv_pass_txt);
+  IF lv_return_char = 'Y' THEN
+    DBMS_OUTPUT.PUT_LINE('Login successful.');
+    DBMS_OUTPUT.PUT_LINE(lv_return_char);
+    DBMS_OUTPUT.PUT_LINE('Shopper ID: ' || login_pkg.pvg_shop_id);
+    DBMS_OUTPUT.PUT_LINE('Zip Prefix: ' || login_pkg.pvg_zip_prefix);
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('Login failed.');
+  END IF;
+END;
+/
 /* Assignment 7-5
 In this assignment, you create packaged procedures to retrieve shopper information.
 Brewbean’s is adding an application page where customer service agents can retrieve shopper
